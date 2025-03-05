@@ -1,17 +1,23 @@
-import requests
-from bs4 import BeautifulSoup
+import yfinance as yf
 
-# URL of the website to scrape
-url = 'https://finance.yahoo.com/quote/AAPL?p=AAPL'
+def get_stock_price(ticker):
+    stock = yf.Ticker(ticker)
+    
+    # Get the current stock price
+    stock_info = stock.history(period="1d")
+    
+    if stock_info.empty:
+        return f"Could not find data for {ticker}"
+    
+    price = stock_info['Close'].iloc[0]
+    currency = stock.info.get('currency', 'USD')  # Default to USD if no currency info is found
+    
+    # Format the price to two decimals
+    formatted_price = f"{price:.2f}"
+    
+    return f"{ticker} price: {formatted_price} {currency}"
 
-# Send a GET request to the website
-response = requests.get(url)
-
-# Parse the HTML content of the page
-soup = BeautifulSoup(response.text, 'html.parser')
-
-# Find the element containing the stock price
-stock_price = soup.find('fin-streamer', {'data-field': 'regularMarketPrice'}).text
-
-# Print the stock price
-print(f"Apple stock price: {stock_price}")
+# Run this only if executed as a script
+if __name__ == "__main__":
+    ticker = input("Enter stock ticker symbol: ").strip().upper()
+    print(get_stock_price(ticker))
